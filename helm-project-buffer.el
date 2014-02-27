@@ -86,8 +86,7 @@
   (cl-letf* ((buffers (buffer-list))
              (sources (helm-project-buffer-create-source buffers)))
     (helm :sources sources
-          :buffer "*helm buffers project"
-          :candidate-number-limit 20)))
+          :buffer "*helm buffers project")))
 
 (provide 'helm-project-buffer)
 
