@@ -100,7 +100,7 @@
   (cl-letf* ((buffers (buffer-list))
              (sources (helm-project-buffer-create-source buffers)))
     (helm :sources sources
-          :buffer "*helm buffers project")))
+          :buffer "*helm project buffers")))
 
 (provide 'helm-project-buffer)
 
