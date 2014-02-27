@@ -70,7 +70,10 @@
                        other-buffers)))
     `((name . "Other")
       (candidates . ,buffers)
-      (action . (("Open buffer" . helm-project-buffer-action-open-buffer))))))
+      (action . (("Open buffer" . helm-project-buffer-action-open-buffer)))
+      (filtered-candidate-transformer helm-project-buffer-skip-boring-buffers
+                                      ;; helm-highlight-buffers
+                                      ))))
 
 (cl-defun helm-project-buffer-create-source (_buffers)
   (append
@@ -79,6 +82,17 @@
 
 (cl-defun helm-project-buffer-action-open-buffer (candidate)
   (switch-to-buffer candidate))
+
+(defun helm-project-buffer-skip-boring-buffers (buffers _source)
+  (helm-project-buffer-skip-entries buffers helm-boring-buffer-regexp-list))
+
+(defun helm-project-buffer-skip-entries (seq regexp-list)
+  "Remove entries which matches one of REGEXP-LIST from SEQ."
+  (cl-loop for i in seq
+           unless (cl-loop for regexp in regexp-list
+                           thereis (and (stringp (car i))
+                                        (string-match regexp (car i))))
+           collect i))
 
 ;;;###autoload
 (cl-defun helm-project-buffer ()
