@@ -16,13 +16,17 @@
   (cl-letf* ((file (buffer-file-name _buffer))
              (backend (vc-backend file)))
     (cl-case backend
-      (Git (cons backend (vc-git-root file))))))
+      (Git (cons backend (vc-git-root file)))
+      (SVN (cons backend (vc-svn-root file)))
+      (Hg (cons backend (vc-hg-root file))))))
 
 (cl-defun helm-project-buffer-buffer-root (_buffer)
   (cl-letf* ((file (buffer-file-name _buffer))
              (backend (vc-backend file)))
     (cl-case backend
-      (Git (vc-git-root file)))))
+      (Git (vc-git-root file))
+      (SVN (vc-svn-root file))
+      (Hg (vc-hg-root file)))))
 
 (cl-defun helm-project-buffer-find-buffer-root-and-backend (_buffers)
   (cl-remove-duplicates
@@ -55,6 +59,7 @@
                            (plist-get l :buffers))))
          `((name .       ,(format "%s: %s" (plist-get l :backend) (plist-get l :root)))
            (candidates . ,buffers)
+           (action . (("Open buffer" . helm-project-buffer-action-open-buffer)))
            )))
      source-buffers-alist)))
 
@@ -64,12 +69,16 @@
                        (lambda (b) (cons (buffer-name b) b))
                        other-buffers)))
     `((name . "Other")
-      (candidates . ,buffers))))
+      (candidates . ,buffers)
+      (action . (("Open buffer" . helm-project-buffer-action-open-buffer))))))
 
 (cl-defun helm-project-buffer-create-source (_buffers)
   (append
    (helm-project-buffer-create-vc-buffer-source _buffers)
    (list (helm-project-buffer-create-other-buffer-source _buffers))))
+
+(cl-defun helm-project-buffer-action-open-buffer (candidate)
+  (switch-to-buffer candidate))
 
 ;;;###autoload
 (cl-defun helm-project-buffer ()
