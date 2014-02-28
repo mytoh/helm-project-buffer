@@ -3,6 +3,7 @@
 (eval-when-compile (require 'cl-lib))
 (require 'helm)
 (require 'helm-buffers)
+(require 'helm-utils)
 
 (cl-defun helm-project-buffer-buffer-backend (_buffer)
   (vc-backend (buffer-file-name _buffer)))
@@ -58,7 +59,9 @@
        (cl-letf ((buffers (cl-mapcar
                            (lambda (b) (cons (buffer-name b) b))
                            (plist-get l :buffers))))
-         `((name .       ,(format "%s: %s" (plist-get l :backend) (plist-get l :root)))
+         `((name .       ,(format "%s: %s"
+                                  (plist-get l :backend)
+                                  (plist-get l :root)))
            (candidates . ,buffers)
            (action . (("Open buffer" . helm-project-buffer-action-open-buffer)))
            (filtered-candidate-transformer
@@ -83,7 +86,7 @@
    (list (helm-project-buffer-create-other-buffer-source _buffers))))
 
 (cl-defun helm-project-buffer-action-open-buffer (candidate)
-  (switch-to-buffer candidate))
+  (helm-switch-to-buffer candidate))
 
 (cl-defun helm-project-buffer-transformer-skip-boring-buffers (candidates _source)
   (helm-project-buffer-skip-entries candidates helm-boring-buffer-regexp-list))
@@ -104,7 +107,7 @@
     strings)))
 
 (defun helm-project-buffer-highlight-buffer-name (buffer)
-  (let* ((mode (with-current-buffer buffer (symbol-name major-mode)))
+  (let* ((mode (with-current-buffer buffer (helm-stringify major-mode)))
          (buf (get-buffer buffer))
          (size (propertize (helm-buffer-size buf)
                            'face 'helm-buffer-size))
@@ -147,7 +150,7 @@
 
 (cl-defun helm-project-buffer-format-state (_buffer)
   (cl-letf ((state (vc-state (buffer-file-name _buffer))))
-    (cl-flet ((prop (face) (propertize (symbol-name state) 'face face)))
+    (cl-flet ((prop (face) (propertize (helm-stringify state) 'face face)))
       (cl-case state
         (edited (prop 'font-lock-builtin-face))
         (up-to-date (prop 'font-lock-reference-face))
