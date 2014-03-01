@@ -23,7 +23,7 @@
       (Hg (cons backend (vc-hg-root file))))))
 
 (cl-defun helm-project-buffer-buffer-root (_buffer)
-  (cl-letf* ((file (abbreviate-file-name (buffer-file-name _buffer)))
+  (cl-letf* ((file (buffer-file-name _buffer))
              (backend (vc-backend file)))
     (cl-case backend
       (Git (vc-git-root file))
@@ -77,8 +77,7 @@
       (candidates . ,buffers)
       (action . (("Open buffer" . helm-project-buffer-action-open-buffer)))
       (filtered-candidate-transformer
-       helm-project-buffer-transformer-skip-boring-buffers
-       ))))
+       helm-project-buffer-transformer-skip-boring-buffers))))
 
 (cl-defun helm-project-buffer-create-source (_buffers)
   (append
@@ -112,8 +111,8 @@
          (size (propertize (helm-buffer-size buf)
                            'face 'helm-buffer-size))
          (proc (get-buffer-process buf))
-         (dir (with-current-buffer buffer (abbreviate-file-name default-directory)))
-         (file-name (helm-aif (buffer-file-name buf) (abbreviate-file-name it)))
+         (dir (with-current-buffer buffer (expand-file-name default-directory)))
+         (file-name (helm-aif (buffer-file-name buf) (expand-file-name it)))
          (name (buffer-name buf))
          (name-prefix (when (file-remote-p dir)
                         (propertize "@ " 'face 'helm-ff-prefix))))
