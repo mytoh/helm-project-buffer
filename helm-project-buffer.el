@@ -30,6 +30,15 @@
       (SVN (vc-svn-root file))
       (Hg (vc-hg-root file)))))
 
+(cl-defun helm-project-buffer-buffer-git-branch (_buffer)
+  (cl-letf* ((file (buffer-file-name _buffer))
+             (backend (vc-backend file)))
+    (cl-case backend
+      (Git (helm-aif (with-current-buffer
+                         _buffer (car (vc-git-branches)))
+               it ""))
+      (t ""))))
+
 (cl-defun helm-project-buffer-find-buffer-root-and-backend (_buffers)
   (cl-remove-duplicates
    (cl-remove nil
@@ -48,6 +57,12 @@
                (lambda (rb)
                  (list :root (cdr rb)
                        :backend (car rb)
+                       :branch (helm-project-buffer-buffer-git-branch
+                                (cl-find-if
+                                 (lambda (b)
+                                   (cl-equalp (cdr rb)
+                                              (helm-project-buffer-buffer-root b)))
+                                 vc-buffers))
                        :buffers (cl-remove-if-not
                                  (lambda (b)
                                    (cl-equalp (cdr rb)
@@ -59,9 +74,13 @@
        (cl-letf ((buffers (cl-mapcar
                            (lambda (b) (cons (buffer-name b) b))
                            (plist-get l :buffers))))
-         `((name .       ,(format "%s: %s"
-                                  (plist-get l :backend)
-                                  (plist-get l :root)))
+         `((name .       ,
+                 (format "%s%s: %s"
+                         (plist-get l :backend)
+                         (if (string-blank-p (plist-get l :branch))
+                             ""
+                           (format "@%s" (plist-get l :branch)))
+                         (plist-get l :root)))
            (candidates . ,buffers)
            (action . (("Open buffer" . helm-project-buffer-action-open-buffer)))
            (filtered-candidate-transformer
