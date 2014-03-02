@@ -83,7 +83,7 @@
                          (plist-get l :root)))
            (candidates . ,buffers)
            (action . (("Open buffer" . helm-project-buffer-action-open-buffer)))
-           (filtered-candidate-transformer
+           (candidate-transformer
             helm-project-buffer-transformer-format-buffer))))
      source-buffers-alist)))
 
@@ -95,7 +95,7 @@
     `((name . "Other")
       (candidates . ,buffers)
       (action . (("Open buffer" . helm-project-buffer-action-open-buffer)))
-      (filtered-candidate-transformer
+      (candidate-transformer
        helm-project-buffer-transformer-skip-boring-buffers))))
 
 (cl-defun helm-project-buffer-create-source (_buffers)
@@ -106,7 +106,7 @@
 (cl-defun helm-project-buffer-action-open-buffer (candidate)
   (helm-switch-to-buffer candidate))
 
-(cl-defun helm-project-buffer-transformer-skip-boring-buffers (candidates _source)
+(cl-defun helm-project-buffer-transformer-skip-boring-buffers (candidates)
   (helm-project-buffer-skip-entries candidates helm-boring-buffer-regexp-list))
 
 (cl-defun helm-project-buffer-skip-entries (seq regexp-list)
@@ -117,7 +117,7 @@
                                         (string-match regexp (car i))))
            collect i))
 
-(cl-defun helm-project-buffer-longeth-string-width (strings)
+(cl-defun helm-project-buffer-longest-string-width (strings)
   (length
    (cl-reduce
     (lambda (a b) (if (> (length a) (length b))
@@ -183,8 +183,8 @@
         (unregistered (prop 'font-lock-builtin-face))
         (t state)))))
 
-(cl-defun helm-project-buffer-transformer-format-buffer (_candidates source)
-  (cl-letf ((longest-buffer-width (helm-project-buffer-longeth-string-width
+(cl-defun helm-project-buffer-transformer-format-buffer (_candidates)
+  (cl-letf ((longest-buffer-width (helm-project-buffer-longest-string-width
                                    (cl-mapcar 'car _candidates))))
     (cl-mapcar
      (lambda (b)
