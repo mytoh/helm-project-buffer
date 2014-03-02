@@ -9,10 +9,9 @@
   (vc-backend (buffer-file-name _buffer)))
 
 (cl-defun helm-project-buffer-buffer-registerd (_buffer)
-  (cl-letf ((file (buffer-file-name _buffer)))
-    (if file
-        (vc-registered file)
-      nil)))
+  (helm-aif (buffer-file-name _buffer)
+      (vc-registered it)
+    nil))
 
 (cl-defun helm-project-buffer-buffer-root-and-backend (_buffer)
   (cl-letf* ((file (buffer-file-name _buffer))
@@ -96,7 +95,8 @@
       (candidates . ,buffers)
       (action . (("Open buffer" . helm-project-buffer-action-open-buffer)))
       (candidate-transformer
-       helm-project-buffer-transformer-skip-boring-buffers))))
+       helm-project-buffer-transformer-skip-boring-buffers
+       helm-project-buffer-transformer-format-other-buffer))))
 
 (cl-defun helm-project-buffer-create-source (_buffers)
   (append
@@ -124,17 +124,17 @@
                       a b))
     strings)))
 
-(defun helm-project-buffer-highlight-buffer-name (buffer)
-  (let* ((mode (with-current-buffer buffer (helm-stringify major-mode)))
-         (buf (get-buffer buffer))
-         (size (propertize (helm-buffer-size buf)
-                           'face 'helm-buffer-size))
-         (proc (get-buffer-process buf))
-         (dir (with-current-buffer buffer (expand-file-name default-directory)))
-         (file-name (helm-aif (buffer-file-name buf) (expand-file-name it)))
-         (name (buffer-name buf))
-         (name-prefix (when (file-remote-p dir)
-                        (propertize "@ " 'face 'helm-ff-prefix))))
+(cl-defun helm-project-buffer-highlight-buffer-name (buffer)
+  (cl-letf* ((mode (with-current-buffer buffer (helm-stringify major-mode)))
+             (buf (get-buffer buffer))
+             (size (propertize (helm-buffer-size buf)
+                               'face 'helm-buffer-size))
+             (proc (get-buffer-process buf))
+             (dir (with-current-buffer buffer (expand-file-name default-directory)))
+             (file-name (helm-aif (buffer-file-name buf) (expand-file-name it)))
+             (name (buffer-name buf))
+             (name-prefix (when (file-remote-p dir)
+                            (propertize "@ " 'face 'helm-ff-prefix))))
     (cond
      ( ;; A dired buffer.
       (rassoc buf dired-buffers)
@@ -195,6 +195,20 @@
                       longest-buffer-width)
                      (helm-project-buffer-format-mode (cdr b))
                      (helm-project-buffer-format-state (cdr b)))
+             (cdr b)))
+     _candidates)))
+
+(cl-defun helm-project-buffer-transformer-format-other-buffer (_candidates)
+  (cl-letf ((longest-buffer-width (helm-project-buffer-longest-string-width
+                                   (cl-mapcar 'car _candidates))))
+    (cl-mapcar
+     (lambda (b)
+       (cons (format "%s%s"
+                     (helm-project-buffer-format-name
+                      (helm-project-buffer-highlight-buffer-name
+                       (cdr b))
+                      longest-buffer-width)
+                     (helm-project-buffer-format-mode (cdr b)))
              (cdr b)))
      _candidates)))
 
