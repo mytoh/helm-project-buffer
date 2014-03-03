@@ -46,28 +46,31 @@
                _buffers))
    :test (lambda (rb1 rb2) (cl-equalp (cdr rb1) (cdr rb2)))))
 
+(cl-defun helm-project-buffer-source-buffers-alist (_vc-buffers _rb-buffers)
+  (cl-mapcar
+   (lambda (rb)
+     (list :root (cdr rb)
+           :backend (car rb)
+           :branch (helm-project-buffer-buffer-git-branch
+                    (cl-find-if
+                     (lambda (b)
+                       (cl-equalp (cdr rb)
+                                  (helm-project-buffer-buffer-root b)))
+                     _vc-buffers))
+           :buffers (cl-remove-if-not
+                     (lambda (b)
+                       (cl-equalp (cdr rb)
+                                  (helm-project-buffer-buffer-root b)))
+                     _vc-buffers)))
+   _rb-buffers))
+
 (cl-defun helm-project-buffer-create-vc-buffer-source (_buffers)
   (cl-letf* ((vc-buffers (cl-remove-if-not 'helm-project-buffer-buffer-registerd
                                            _buffers))
              (buffer-root-and-backend (helm-project-buffer-find-buffer-root-and-backend
                                        vc-buffers))
              (source-buffers-alist
-              (cl-mapcar
-               (lambda (rb)
-                 (list :root (cdr rb)
-                       :backend (car rb)
-                       :branch (helm-project-buffer-buffer-git-branch
-                                (cl-find-if
-                                 (lambda (b)
-                                   (cl-equalp (cdr rb)
-                                              (helm-project-buffer-buffer-root b)))
-                                 vc-buffers))
-                       :buffers (cl-remove-if-not
-                                 (lambda (b)
-                                   (cl-equalp (cdr rb)
-                                              (helm-project-buffer-buffer-root b)))
-                                 vc-buffers)))
-               buffer-root-and-backend)))
+              (helm-project-buffer-source-buffers-alist vc-buffers buffer-root-and-backend)))
     (cl-mapcar
      (lambda (l)
        (cl-letf ((buffers (cl-mapcar
@@ -188,7 +191,7 @@
                                    (cl-mapcar 'car _candidates))))
     (cl-mapcar
      (lambda (b)
-       (cons (format "%s%s %s"
+       (cons (format "%s%s  %s"
                      (helm-project-buffer-format-name
                       (helm-project-buffer-highlight-buffer-name
                        (cdr b))
