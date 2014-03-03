@@ -76,13 +76,12 @@
        (cl-letf ((buffers (cl-mapcar
                            (lambda (b) (cons (buffer-name b) b))
                            (plist-get l :buffers))))
-         `((name .       ,
-                 (format "%s%s: %s"
-                         (plist-get l :backend)
-                         (if (string-blank-p (plist-get l :branch))
-                             ""
-                           (format "@%s" (plist-get l :branch)))
-                         (plist-get l :root)))
+         `((name . ,(format "%s%s: %s"
+                            (plist-get l :backend)
+                            (if (string-blank-p (plist-get l :branch))
+                                ""
+                              (format "@%s" (plist-get l :branch)))
+                            (plist-get l :root)))
            (candidates . ,buffers)
            (action . (("Open buffer" . helm-project-buffer-action-open-buffer)))
            (candidate-transformer
@@ -141,7 +140,7 @@
     (cond
      ( ;; A dired buffer.
       (rassoc buf dired-buffers)
-      (propertize name 'face 'helm-ff-directory))
+      (propertize name 'face 'helm-buffer-directory))
      ;; A buffer file modified somewhere outside of emacs.=>red
      ((and file-name (file-exists-p file-name)
            (not (verify-visited-file-modtime buf)))
