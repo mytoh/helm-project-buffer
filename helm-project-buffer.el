@@ -137,26 +137,27 @@
              (name (buffer-name buf))
              (name-prefix (when (file-remote-p dir)
                             (propertize "@ " 'face 'helm-ff-prefix))))
-    (cond
-     ( ;; A dired buffer.
-      (rassoc buf dired-buffers)
-      (propertize name 'face 'helm-buffer-directory))
-     ;; A buffer file modified somewhere outside of emacs.=>red
-     ((and file-name (file-exists-p file-name)
-           (not (verify-visited-file-modtime buf)))
-      (propertize name 'face 'helm-buffer-saved-out))
-     ;; A new buffer file not already saved on disk.=>indianred2
-     ((and file-name (not (verify-visited-file-modtime buf)))
-      (propertize name 'face 'helm-buffer-not-saved))
-     ;; A buffer file modified and not saved on disk.=>orange
-     ((and file-name (buffer-modified-p buf))
-      (propertize name 'face 'helm-ff-symlink))
-     ;; A buffer file not modified and saved on disk.=>green
-     (file-name
-      (propertize name 'face 'font-lock-type-face))
-     ;; Any non--file buffer.=>grey italic
-     (t
-      (propertize name 'face 'italic)))))
+    (cl-flet ((prop (face) (propertize name 'face face)))
+      (cond
+       ( ;; A dired buffer.
+        (rassoc buf dired-buffers)
+        (prop 'helm-buffer-directory))
+       ;; A buffer file modified somewhere outside of emacs.=>red
+       ((and file-name (file-exists-p file-name)
+             (not (verify-visited-file-modtime buf)))
+        (prop 'helm-buffer-saved-out))
+       ;; A new buffer file not already saved on disk.=>indianred2
+       ((and file-name (not (verify-visited-file-modtime buf)))
+        (prop 'helm-buffer-not-saved))
+       ;; A buffer file modified and not saved on disk.=>orange
+       ((and file-name (buffer-modified-p buf))
+        (prop 'helm-ff-symlink))
+       ;; A buffer file not modified and saved on disk.=>green
+       (file-name
+        (prop 'font-lock-type-face))
+       ;; Any non--file buffer.=>grey italic
+       (t
+        (prop 'italic))))))
 
 (cl-defun helm-project-buffer-format-name (_name _length)
   (if (< _length (length _name))
