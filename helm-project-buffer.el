@@ -186,19 +186,28 @@
         (unregistered (prop 'font-lock-builtin-face))
         (t state)))))
 
+(cl-defun helm-project-buffer-format-file-name (_buffer)
+  (cl-letf ((filename (buffer-file-name _buffer)))
+    (helm-aif filename
+        (propertize (abbreviate-file-name it)
+                    'face 'helm-buffer-process)
+      "")))
+
 (cl-defun helm-project-buffer-transformer-format-buffer (_candidates)
   (cl-letf ((longest-buffer-width (helm-project-buffer-longest-string-width
                                    (cl-mapcar 'car _candidates))))
     (cl-mapcar
      (lambda (b)
-       (cons (format "%s%s  %s"
-                     (helm-project-buffer-format-name
-                      (helm-project-buffer-highlight-buffer-name
-                       (cdr b))
-                      longest-buffer-width)
-                     (helm-project-buffer-format-mode (cdr b))
-                     (helm-project-buffer-format-state (cdr b)))
-             (cdr b)))
+       (cl-letf ((buffer (cdr b)))
+         (cons (format "%s%s  %s  %s"
+                       (helm-project-buffer-format-name
+                        (helm-project-buffer-highlight-buffer-name
+                         buffer)
+                        longest-buffer-width)
+                       (helm-project-buffer-format-mode buffer)
+                       (helm-project-buffer-format-state buffer)
+                       (helm-project-buffer-format-file-name buffer))
+               buffer)))
      _candidates)))
 
 (cl-defun helm-project-buffer-transformer-format-other-buffer (_candidates)
@@ -206,13 +215,15 @@
                                    (cl-mapcar 'car _candidates))))
     (cl-mapcar
      (lambda (b)
-       (cons (format "%s%s"
-                     (helm-project-buffer-format-name
-                      (helm-project-buffer-highlight-buffer-name
-                       (cdr b))
-                      longest-buffer-width)
-                     (helm-project-buffer-format-mode (cdr b)))
-             (cdr b)))
+       (cl-letf ((buffer (cdr b)))
+         (cons (format "%s%s"
+                       (helm-project-buffer-format-name
+                        (helm-project-buffer-highlight-buffer-name
+                         buffer)
+                        longest-buffer-width)
+                       (helm-project-buffer-format-mode buffer)
+                       (helm-project-buffer-format-file-name buffer))
+               buffer)))
      _candidates)))
 
 ;;;###autoload
