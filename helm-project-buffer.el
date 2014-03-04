@@ -193,6 +193,13 @@
                     'face 'helm-buffer-process)
       "")))
 
+(cl-defun helm-project-buffer-format-directory (_buffer)
+  (cl-letf ((dir (with-current-buffer _buffer default-directory)))
+    (helm-aif dir
+        (propertize (abbreviate-file-name it)
+                    'face 'helm-buffer-process)
+      "")))
+
 (cl-defun helm-project-buffer-transformer-format-buffer (_candidates)
   (cl-letf ((longest-buffer-width (helm-project-buffer-longest-string-width
                                    (cl-mapcar 'car _candidates))))
@@ -216,13 +223,13 @@
     (cl-mapcar
      (lambda (b)
        (cl-letf ((buffer (cdr b)))
-         (cons (format "%s%s"
+         (cons (format "%s%s  %s"
                        (helm-project-buffer-format-name
                         (helm-project-buffer-highlight-buffer-name
                          buffer)
                         longest-buffer-width)
                        (helm-project-buffer-format-mode buffer)
-                       (helm-project-buffer-format-file-name buffer))
+                       (helm-project-buffer-format-directory buffer))
                buffer)))
      _candidates)))
 
