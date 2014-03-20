@@ -130,11 +130,12 @@
   (length
    (cl-reduce
     (lambda (a b) (if (> (length a) (length b))
-                      a b))
+                 a b))
     strings)))
 
 (cl-defun helm-project-buffer-highlight-buffer-name (buffer)
-  (cl-letf* ((mode (with-current-buffer buffer (helm-stringify major-mode)))
+  (cl-letf* ((mode (with-current-buffer buffer
+                     (format-mode-line mode-name)))
              (buf (get-buffer buffer))
              (size (propertize (helm-buffer-size buf)
                                'face 'helm-buffer-size))
@@ -173,7 +174,7 @@
                                                ?\ ))))
 
 (cl-defun helm-project-buffer-format-mode (_buffer)
-  (cl-letf ((mode (with-current-buffer _buffer major-mode)))
+  (cl-letf ((mode (with-current-buffer _buffer (format-mode-line mode-name))))
     mode))
 
 (cl-defun helm-project-buffer-format-state (_buffer)
