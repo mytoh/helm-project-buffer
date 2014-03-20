@@ -14,13 +14,13 @@
     nil))
 
 (cl-defun helm-project-buffer-buffer-root-and-backend (_buffer)
+  (cons (helm-project-buffer-buffer-backend _buffer)
+        (helm-project-buffer-buffer-root _buffer)))
+
+(cl-defun helm-project-buffer-buffer-backend (_buffer)
   (cl-letf* ((file (buffer-file-name _buffer))
              (backend (vc-backend file)))
-    (cl-case backend
-      (Git (cons backend (vc-git-root file)))
-      (SVN (cons backend (vc-svn-root file)))
-      (Hg (cons backend (vc-hg-root file)))
-      (Bzr (cons backend (vc-bzr-root file))))))
+    backend))
 
 (cl-defun helm-project-buffer-buffer-root (_buffer)
   (cl-letf* ((file (buffer-file-name _buffer))
@@ -130,7 +130,7 @@
   (length
    (cl-reduce
     (lambda (a b) (if (> (length a) (length b))
-                 a b))
+                      a b))
     strings)))
 
 (cl-defun helm-project-buffer-highlight-buffer-name (buffer)
