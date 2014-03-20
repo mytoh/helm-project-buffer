@@ -19,7 +19,8 @@
     (cl-case backend
       (Git (cons backend (vc-git-root file)))
       (SVN (cons backend (vc-svn-root file)))
-      (Hg (cons backend (vc-hg-root file))))))
+      (Hg (cons backend (vc-hg-root file)))
+      (Bzr (cons backend (vc-bzr-root file))))))
 
 (cl-defun helm-project-buffer-buffer-root (_buffer)
   (cl-letf* ((file (buffer-file-name _buffer))
@@ -27,7 +28,8 @@
     (cl-case backend
       (Git (vc-git-root file))
       (SVN (vc-svn-root file))
-      (Hg (vc-hg-root file)))))
+      (Hg (vc-hg-root file))
+      (Bzr (vc-bzr-root file)))))
 
 (cl-defun helm-project-buffer-buffer-git-branch (_buffer)
   (cl-letf* ((file (buffer-file-name _buffer))
@@ -83,7 +85,7 @@
                               (format "@%s" (plist-get l :branch)))
                             (plist-get l :root)))
            (candidates . ,buffers)
-           (action . (("Open buffer" . helm-project-buffer-action-open-buffer)))
+           (action . ,(helm-project-buffer-actions))
            (candidate-transformer
             helm-project-buffer-transformer-format-buffer))))
      source-buffers-alist)))
@@ -95,7 +97,7 @@
                        other-buffers)))
     `((name . "Other")
       (candidates . ,buffers)
-      (action . (("Open buffer" . helm-project-buffer-action-open-buffer)))
+      (action . ,(helm-project-buffer-actions))
       (candidate-transformer
        helm-project-buffer-transformer-skip-boring-buffers
        helm-project-buffer-transformer-format-other-buffer))))
@@ -104,6 +106,11 @@
   (append
    (helm-project-buffer-create-vc-buffer-source _buffers)
    (list (helm-project-buffer-create-other-buffer-source _buffers))))
+
+(cl-defun helm-project-buffer-actions ()
+  (cons
+   '("Open buffer" . helm-project-buffer-action-open-buffer)
+   (cdr (cdr (helm-get-actions-from-type helm-source-buffers-list)))))
 
 (cl-defun helm-project-buffer-action-open-buffer (candidate)
   (helm-switch-to-buffer candidate))
@@ -123,7 +130,7 @@
   (length
    (cl-reduce
     (lambda (a b) (if (> (length a) (length b))
-                      a b))
+                 a b))
     strings)))
 
 (cl-defun helm-project-buffer-highlight-buffer-name (buffer)
