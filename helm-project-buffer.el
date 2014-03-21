@@ -79,11 +79,11 @@
                            (lambda (b) (cons (buffer-name b) b))
                            (plist-get l :buffers))))
          `((name . ,(format "%s%s: %s"
-                            (plist-get l :backend)
-                            (if (string-blank-p (plist-get l :branch))
+                            (cl-getf l :backend)
+                            (if (string-blank-p (cl-getf l :branch))
                                 ""
-                              (format "@%s" (plist-get l :branch)))
-                            (plist-get l :root)))
+                              (format "@%s" (cl-getf l :branch)))
+                            (cl-getf l :root)))
            (candidates . ,buffers)
            (action . ,(helm-project-buffer-actions))
            (candidate-transformer
