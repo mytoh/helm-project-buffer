@@ -77,7 +77,7 @@
      (lambda (l)
        (cl-letf ((buffers (cl-mapcar
                            (lambda (b) (cons (buffer-name b) b))
-                           (plist-get l :buffers))))
+                           (cl-getf l :buffers))))
          `((name . ,(format "%s%s: %s"
                             (cl-getf l :backend)
                             (if (string-blank-p (cl-getf l :branch))
