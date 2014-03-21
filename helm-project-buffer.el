@@ -82,7 +82,7 @@
                             (cl-getf l :backend)
                             (if (string-blank-p (cl-getf l :branch))
                                 ""
-                              (format "@%s" (cl-getf l :branch)))
+                                (format "@%s" (cl-getf l :branch)))
                             (cl-getf l :root)))
            (candidates . ,buffers)
            (action . ,(helm-project-buffer-actions))
@@ -130,7 +130,7 @@
   (length
    (cl-reduce
     (lambda (a b) (if (> (length a) (length b))
-                 a b))
+                      a b))
     strings)))
 
 (cl-defun helm-project-buffer-highlight-buffer-name (buffer)
@@ -147,31 +147,49 @@
                             (propertize "@ " 'face 'helm-ff-prefix))))
     (cl-flet ((prop (face) (propertize name 'face face)))
       (cond
-       ( ;; A dired buffer.
-        (rassoc buf dired-buffers)
-        (prop 'helm-buffer-directory))
-       ;; A buffer file modified somewhere outside of emacs.=>red
-       ((and file-name (file-exists-p file-name)
-             (not (verify-visited-file-modtime buf)))
-        (prop 'helm-buffer-saved-out))
-       ;; A new buffer file not already saved on disk.=>indianred2
-       ((and file-name (not (verify-visited-file-modtime buf)))
-        (prop 'helm-buffer-not-saved))
-       ;; A buffer file modified and not saved on disk.=>orange
-       ((and file-name (buffer-modified-p buf))
-        (prop 'helm-ff-symlink))
-       ;; A buffer file not modified and saved on disk.=>green
-       (file-name
-        (prop 'font-lock-type-face))
-       ;; Any non--file buffer.=>grey italic
-       (t
-        (prop 'italic))))))
+        ( ;; A dired buffer.
+         (rassoc buf dired-buffers)
+         (prop 'helm-buffer-directory))
+        ;; A buffer file modified somewhere outside of emacs.=>red
+        ((and file-name (file-exists-p file-name)
+              (not (verify-visited-file-modtime buf)))
+         (prop 'helm-buffer-saved-out))
+        ;; A new buffer file not already saved on disk.=>indianred2
+        ((and file-name (not (verify-visited-file-modtime buf)))
+         (prop 'helm-buffer-not-saved))
+        ;; A buffer file modified and not saved on disk.=>orange
+        ((and file-name (buffer-modified-p buf))
+         (prop 'helm-ff-symlink))
+        ;; A buffer file not modified and saved on disk.=>green
+        (file-name
+         (prop 'font-lock-type-face))
+        ;; Any non--file buffer.=>grey italic
+        (t
+         (prop 'italic))))))
+
+(cl-defun helm-project-buffer-pad-right (_elem _length)
+  (cl-letf ((offset 1))
+    (if (< _length (length _elem))
+        (cl-concatenate 'string
+                        _elem (make-string offset ?\ ))
+        (cl-concatenate 'string
+                        _elem (make-string (+ (- _length (length _elem)) offset) ?\ )))))
+
+(cl-defun helm-project-buffer-pad-left (_elem _length)
+  (cl-letf ((offset 1))
+    (if (< _length (length _elem))
+        (cl-concatenate 'string
+                        (make-string offset ?\ )
+                        _elem)
+        (cl-concatenate 'string
+                        (make-string (+ (- _length (length _elem)) offset) ?\ )
+                        _elem))))
 
 (cl-defun helm-project-buffer-format-name (_name _length)
   (if (< _length (length _name))
       (cl-concatenate 'string _name (make-string 2 ?\ ))
-    (cl-concatenate 'string _name (make-string (+ (- _length (length _name)) 2)
-                                               ?\ ))))
+      (cl-concatenate 'string _name (make-string (+ (- _length (length _name)) 2)
+                                                 ?\ ))))
 
 (cl-defun helm-project-buffer-format-mode (_buffer)
   (cl-letf ((mode (with-current-buffer _buffer (format-mode-line mode-name))))
@@ -210,7 +228,12 @@
 
 (cl-defun helm-project-buffer-transformer-format-buffer (_candidates)
   (cl-letf ((longest-buffer-width (helm-project-buffer-longest-string-width
-                                   (cl-mapcar 'car _candidates))))
+                                   (cl-mapcar 'car _candidates)))
+            (longest-mode-width (helm-project-buffer-longest-string-width
+                                 (cl-mapcar
+                                  (lambda (b) (helm-project-buffer-format-mode
+                                          (cdr b)))
+                                  _candidates))))
     (cl-mapcar
      (lambda (b)
        (cl-letf ((buffer (cdr b)))
@@ -219,7 +242,9 @@
                         (helm-project-buffer-highlight-buffer-name
                          buffer)
                         longest-buffer-width)
-                       (helm-project-buffer-format-mode buffer)
+                       (helm-project-buffer-pad-left
+                        (helm-project-buffer-format-mode buffer)
+                        longest-mode-width)
                        (helm-project-buffer-format-state buffer)
                        (helm-project-buffer-format-file-name buffer))
                buffer)))
@@ -227,7 +252,12 @@
 
 (cl-defun helm-project-buffer-transformer-format-other-buffer (_candidates)
   (cl-letf ((longest-buffer-width (helm-project-buffer-longest-string-width
-                                   (cl-mapcar 'car _candidates))))
+                                   (cl-mapcar 'car _candidates)))
+            (longest-mode-width (helm-project-buffer-longest-string-width
+                                 (cl-mapcar
+                                  (lambda (b) (helm-project-buffer-format-mode
+                                          (cdr b)))
+                                  _candidates))))
     (cl-mapcar
      (lambda (b)
        (cl-letf ((buffer (cdr b)))
@@ -236,7 +266,9 @@
                         (helm-project-buffer-highlight-buffer-name
                          buffer)
                         longest-buffer-width)
-                       (helm-project-buffer-format-mode buffer)
+                       (helm-project-buffer-pad-left
+                        (helm-project-buffer-format-mode buffer)
+                        longest-mode-width)
                        (helm-project-buffer-format-directory buffer))
                buffer)))
      _candidates)))
