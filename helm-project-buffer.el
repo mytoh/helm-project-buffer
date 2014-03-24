@@ -34,11 +34,13 @@
 (cl-defun helm-project-buffer-buffer-git-branch (_buffer)
   (cl-letf* ((file (buffer-file-name _buffer))
              (backend (vc-backend file)))
-    (cl-case backend
-      (Git (helm-aif (with-current-buffer
-                         _buffer (car (vc-git-branches)))
-               it ""))
-      (t ""))))
+    (if (file-exists-p file)
+        (cl-case backend
+          (Git (helm-aif (with-current-buffer
+                             _buffer (car (vc-git-branches)))
+                   it ""))
+          (t ""))
+        "")))
 
 (cl-defun helm-project-buffer-find-buffer-root-and-backend (_buffers)
   (cl-remove-duplicates
@@ -56,8 +58,10 @@
            :branch (helm-project-buffer-buffer-git-branch
                     (cl-find-if
                      (lambda (b)
-                       (cl-equalp (cdr rb)
-                                  (helm-project-buffer-buffer-root b)))
+                       (and
+                        (file-exists-p (buffer-file-name b))
+                        (cl-equalp (cdr rb)
+                                   (helm-project-buffer-buffer-root b))))
                      _vc-buffers))
            :buffers (cl-remove-if-not
                      (lambda (b)
@@ -232,7 +236,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (cl-mapcar
                                   (lambda (b) (helm-project-buffer-format-mode
-                                          (cdr b)))
+                                               (cdr b)))
                                   _candidates))))
     (cl-mapcar
      (lambda (b)
@@ -256,7 +260,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (cl-mapcar
                                   (lambda (b) (helm-project-buffer-format-mode
-                                          (cdr b)))
+                                               (cdr b)))
                                   _candidates))))
     (cl-mapcar
      (lambda (b)
