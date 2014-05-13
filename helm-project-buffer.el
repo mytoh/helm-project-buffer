@@ -40,7 +40,7 @@
                              _buffer (car (vc-git-branches)))
                    it ""))
           (t ""))
-        "")))
+      "")))
 
 (cl-defun helm-project-buffer-find-buffer-root-and-backend (_buffers)
   (cl-remove-duplicates
@@ -86,7 +86,7 @@
                             (cl-getf l :backend)
                             (if (string-blank-p (cl-getf l :branch))
                                 ""
-                                (format "@%s" (cl-getf l :branch)))
+                              (format "@%s" (cl-getf l :branch)))
                             (cl-getf l :root)))
            (candidates . ,buffers)
            (action . ,(helm-project-buffer-actions))
@@ -125,16 +125,16 @@
 (cl-defun helm-project-buffer-skip-entries (seq regexp-list)
   "Remove entries which matches one of REGEXP-LIST from SEQ."
   (cl-loop for i in seq
-           unless (cl-loop for regexp in regexp-list
-                           thereis (and (stringp (car i))
-                                        (string-match regexp (car i))))
-           collect i))
+     unless (cl-loop for regexp in regexp-list
+               thereis (and (stringp (car i))
+                            (string-match regexp (car i))))
+     collect i))
 
 (cl-defun helm-project-buffer-longest-string-width (strings)
   (length
    (cl-reduce
     (lambda (a b) (if (> (length a) (length b))
-                      a b))
+                 a b))
     strings)))
 
 (cl-defun helm-project-buffer-highlight-buffer-name (buffer)
@@ -176,8 +176,8 @@
     (if (< _length (length _elem))
         (cl-concatenate 'string
                         _elem (make-string offset ?\ ))
-        (cl-concatenate 'string
-                        _elem (make-string (+ (- _length (length _elem)) offset) ?\ )))))
+      (cl-concatenate 'string
+                      _elem (make-string (+ (- _length (length _elem)) offset) ?\ )))))
 
 (cl-defun helm-project-buffer-pad-left (_elem _length)
   (cl-letf ((offset 1))
@@ -185,15 +185,15 @@
         (cl-concatenate 'string
                         (make-string offset ?\ )
                         _elem)
-        (cl-concatenate 'string
-                        (make-string (+ (- _length (length _elem)) offset) ?\ )
-                        _elem))))
+      (cl-concatenate 'string
+                      (make-string (+ (- _length (length _elem)) offset) ?\ )
+                      _elem))))
 
 (cl-defun helm-project-buffer-format-name (_name _length)
   (if (< _length (length _name))
       (cl-concatenate 'string _name (make-string 2 ?\ ))
-      (cl-concatenate 'string _name (make-string (+ (- _length (length _name)) 2)
-                                                 ?\ ))))
+    (cl-concatenate 'string _name (make-string (+ (- _length (length _name)) 2)
+                                               ?\ ))))
 
 (cl-defun helm-project-buffer-format-mode (_buffer)
   (cl-letf ((mode (with-current-buffer _buffer (format-mode-line mode-name))))
@@ -204,7 +204,7 @@
     (cl-flet ((prop (face) (propertize (helm-stringify state) 'face face)))
       (cl-case state
         (edited (prop 'font-lock-builtin-face))
-        (up-to-date (prop 'font-lock-reference-face))
+        (up-to-date (prop 'font-lock-variable-name-face))
         (needs-update (prop 'font-lock-comment-delimiter-face))
         (needs-merge (prop 'font-lock-constant-face))
         (unlocked-changes (prop 'font-lock-doc-face))
@@ -236,7 +236,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (cl-mapcar
                                   (lambda (b) (helm-project-buffer-format-mode
-                                               (cdr b)))
+                                          (cdr b)))
                                   _candidates))))
     (cl-mapcar
      (lambda (b)
@@ -260,7 +260,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (cl-mapcar
                                   (lambda (b) (helm-project-buffer-format-mode
-                                               (cdr b)))
+                                          (cdr b)))
                                   _candidates))))
     (cl-mapcar
      (lambda (b)
