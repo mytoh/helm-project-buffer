@@ -10,7 +10,10 @@
 
 (cl-defun helm-project-buffer-buffer-registerd (_buffer)
   (helm-aif (buffer-file-name _buffer)
-      (vc-registered it)
+      (if (and (not (tramp-tramp-file-p it))
+               (file-exists-p it))
+          (vc-registered it)
+        nil)
     nil))
 
 (cl-defun helm-project-buffer-buffer-root-and-backend (_buffer)
@@ -134,7 +137,7 @@
   (length
    (cl-reduce
     (lambda (a b) (if (> (length a) (length b))
-                 a b))
+                      a b))
     strings)))
 
 (cl-defun helm-project-buffer-highlight-buffer-name (buffer)
@@ -236,7 +239,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (cl-mapcar
                                   (lambda (b) (helm-project-buffer-format-mode
-                                          (cdr b)))
+                                               (cdr b)))
                                   _candidates))))
     (cl-mapcar
      (lambda (b)
@@ -260,7 +263,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (cl-mapcar
                                   (lambda (b) (helm-project-buffer-format-mode
-                                          (cdr b)))
+                                               (cdr b)))
                                   _candidates))))
     (cl-mapcar
      (lambda (b)
