@@ -137,7 +137,7 @@
   (length
    (cl-reduce
     (lambda (a b) (if (> (length a) (length b))
-                      a b))
+                 a b))
     strings)))
 
 (cl-defun helm-project-buffer-highlight-buffer-name (buffer)
@@ -152,7 +152,7 @@
              (name (buffer-name buf))
              (name-prefix (when (file-remote-p dir)
                             (propertize "@ " 'face 'helm-ff-prefix))))
-    (cl-flet ((prop (face) (propertize name 'face face)))
+    (cl-labels ((prop (face) (propertize name 'face face)))
       (cond
         ( ;; A dired buffer.
          (rassoc buf dired-buffers)
@@ -204,7 +204,7 @@
 
 (cl-defun helm-project-buffer-format-state (_buffer)
   (cl-letf ((state (vc-state (buffer-file-name _buffer))))
-    (cl-flet ((prop (face) (propertize (helm-stringify state) 'face face)))
+    (cl-labels ((prop (face) (propertize (helm-stringify state) 'face face)))
       (pcase state
         (`edited (prop 'font-lock-builtin-face))
         (`up-to-date (prop 'font-lock-variable-name-face))
@@ -263,7 +263,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (cl-mapcar
                                   (lambda (b) (helm-project-buffer-format-mode
-                                               (cdr b)))
+                                          (cdr b)))
                                   _candidates))))
     (cl-mapcar
      (lambda (b)
