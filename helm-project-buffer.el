@@ -1,6 +1,7 @@
 ;;; helm-project-buffer.el -*- lexical-binding: t -*-
 
 (eval-when-compile (require 'cl-lib))
+(require 'subr-x)
 (require 'helm)
 (require 'helm-buffers)
 (require 'helm-utils)
@@ -66,7 +67,7 @@
                         (cl-equalp (cdr rb)
                                    (helm-project-buffer-buffer-root b))))
                      _vc-buffers))
-           :buffers (cl-remove-if-not
+           :buffers (filter
                      (lambda (b)
                        (cl-equalp (cdr rb)
                                   (helm-project-buffer-buffer-root b)))
@@ -74,8 +75,8 @@
    _rb-buffers))
 
 (cl-defun helm-project-buffer-create-vc-buffer-source (_buffers)
-  (cl-letf* ((vc-buffers (cl-remove-if-not 'helm-project-buffer-buffer-registerd
-                                           _buffers))
+  (cl-letf* ((vc-buffers (filter 'helm-project-buffer-buffer-registerd
+                                 _buffers))
              (buffer-root-and-backend (helm-project-buffer-find-buffer-root-and-backend
                                        vc-buffers))
              (source-buffers-alist
@@ -137,7 +138,7 @@
   (length
    (cl-reduce
     (lambda (a b) (if (> (length a) (length b))
-                 a b))
+                      a b))
     strings)))
 
 (cl-defun helm-project-buffer-highlight-buffer-name (buffer)
@@ -239,7 +240,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (cl-mapcar
                                   (lambda (b) (helm-project-buffer-format-mode
-                                          (cdr b)))
+                                               (cdr b)))
                                   _candidates))))
     (cl-mapcar
      (lambda (b)
@@ -263,7 +264,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (cl-mapcar
                                   (lambda (b) (helm-project-buffer-format-mode
-                                          (cdr b)))
+                                               (cdr b)))
                                   _candidates))))
     (cl-mapcar
      (lambda (b)
