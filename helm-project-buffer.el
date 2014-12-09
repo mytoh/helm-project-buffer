@@ -116,9 +116,8 @@
    (list (helm-project-buffer-create-other-buffer-source _buffers))))
 
 (cl-defun helm-project-buffer-actions ()
-  (cons
-   '("Open buffer" . helm-project-buffer-action-open-buffer)
-   (cdr (cdr (helm-get-actions-from-type helm-source-buffers-list)))))
+  (helm-make-actions
+   "Open buffer"  'helm-project-buffer-action-open-buffer))
 
 (cl-defun helm-project-buffer-action-open-buffer (candidate)
   (helm-switch-to-buffer candidate))
@@ -240,7 +239,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (cl-mapcar
                                   (lambda (b) (helm-project-buffer-format-mode
-                                          (cdr b)))
+                                               (cdr b)))
                                   _candidates))))
     (cl-mapcar
      (lambda (b)
@@ -264,7 +263,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (cl-mapcar
                                   (lambda (b) (helm-project-buffer-format-mode
-                                          (cdr b)))
+                                               (cdr b)))
                                   _candidates))))
     (cl-mapcar
      (lambda (b)
