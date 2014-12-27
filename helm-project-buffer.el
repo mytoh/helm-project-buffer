@@ -68,7 +68,7 @@
                         (cl-equalp (cdr rb)
                                    (helm-project-buffer-buffer-root b))))
                      _vc-buffers))
-           :buffers (cl-remove-if-not
+           :buffers (seq-filter
                      (lambda (b)
                        (cl-equalp (cdr rb)
                                   (helm-project-buffer-buffer-root b)))
@@ -76,8 +76,8 @@
    _rb-buffers))
 
 (cl-defun helm-project-buffer-create-vc-buffer-source (_buffers)
-  (cl-letf* ((vc-buffers (cl-remove-if-not #'helm-project-buffer-buffer-registerd
-                                           _buffers))
+  (cl-letf* ((vc-buffers (seq-filter #'helm-project-buffer-buffer-registerd
+                                     _buffers))
              (buffer-root-and-backend (helm-project-buffer-find-buffer-root-and-backend
                                        vc-buffers))
              (source-buffers-alist
@@ -138,7 +138,7 @@
   (length
    (seq-reduce
     (lambda (a b) (if (> (length a) (length b))
-                 a b))
+                      a b))
     strings
     "")))
 
