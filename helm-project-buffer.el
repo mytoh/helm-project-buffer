@@ -50,13 +50,13 @@
 (cl-defun helm-project-buffer-find-buffer-root-and-backend (_buffers)
   (cl-remove-duplicates
    (cl-remove nil
-              (cl-mapcar
+              (seq-map
                #'helm-project-buffer-buffer-root-and-backend
                _buffers))
    :test (lambda (rb1 rb2) (cl-equalp (cdr rb1) (cdr rb2)))))
 
 (cl-defun helm-project-buffer-source-buffers-alist (_vc-buffers _rb-buffers)
-  (cl-mapcar
+  (seq-map
    (lambda (rb)
      (list :root (cdr rb)
            :backend (car rb)
@@ -82,9 +82,9 @@
                                        vc-buffers))
              (source-buffers-alist
               (helm-project-buffer-source-buffers-alist vc-buffers buffer-root-and-backend)))
-    (cl-mapcar
+    (seq-map
      (lambda (l)
-       (cl-letf ((buffers (cl-mapcar
+       (cl-letf ((buffers (seq-map
                            (lambda (b) (cons (buffer-name b) b))
                            (cl-getf l :buffers))))
          `((name . ,(format "%s%s: %s"
@@ -101,7 +101,7 @@
 
 (cl-defun helm-project-buffer-create-other-buffer-source (_buffers)
   (cl-letf* ((other-buffers (cl-remove-if #'helm-project-buffer-buffer-backend _buffers))
-             (buffers (cl-mapcar
+             (buffers (seq-map
                        (lambda (b) (cons (buffer-name b) b))
                        other-buffers)))
     `((name . "Other")
@@ -237,13 +237,13 @@
 
 (cl-defun helm-project-buffer-transformer-format-buffer (_candidates)
   (cl-letf ((longest-buffer-width (helm-project-buffer-longest-string-width
-                                   (cl-mapcar #'car _candidates)))
+                                   (seq-map #'car _candidates)))
             (longest-mode-width (helm-project-buffer-longest-string-width
-                                 (cl-mapcar
+                                 (seq-map
                                   (lambda (b) (helm-project-buffer-format-mode
                                           (cdr b)))
                                   _candidates))))
-    (cl-mapcar
+    (seq-map
      (lambda (b)
        (cl-letf ((buffer (cdr b)))
          (cons (format "%s%s  %s  %s"
@@ -261,13 +261,13 @@
 
 (cl-defun helm-project-buffer-transformer-format-other-buffer (_candidates)
   (cl-letf ((longest-buffer-width (helm-project-buffer-longest-string-width
-                                   (cl-mapcar #'car _candidates)))
+                                   (seq-map #'car _candidates)))
             (longest-mode-width (helm-project-buffer-longest-string-width
-                                 (cl-mapcar
+                                 (seq-map
                                   (lambda (b) (helm-project-buffer-format-mode
                                           (cdr b)))
                                   _candidates))))
-    (cl-mapcar
+    (seq-map
      (lambda (b)
        (cl-letf ((buffer (cdr b)))
          (cons (format "%s%s  %s"
