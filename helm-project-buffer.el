@@ -48,12 +48,12 @@
       "")))
 
 (cl-defun helm-project-buffer-find-buffer-root-and-backend (_buffers)
-  (cl-remove-duplicates
+  (seq-uniq
    (seq-remove #'null
                (seq-map
                 #'helm-project-buffer-buffer-root-and-backend
                 _buffers))
-   :test (lambda (rb1 rb2) (cl-equalp (cdr rb1) (cdr rb2)))))
+   (lambda (rb1 rb2) (cl-equalp (cdr rb1) (cdr rb2)))))
 
 (cl-defun helm-project-buffer-source-buffers-alist (_vc-buffers _rb-buffers)
   (seq-map
@@ -138,7 +138,7 @@
   (length
    (seq-reduce
     (lambda (a b) (if (> (length a) (length b))
-                 a b))
+                      a b))
     strings
     "")))
 
@@ -241,7 +241,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (seq-map
                                   (lambda (b) (helm-project-buffer-format-mode
-                                          (cdr b)))
+                                               (cdr b)))
                                   _candidates))))
     (seq-map
      (lambda (b)
@@ -265,7 +265,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (seq-map
                                   (lambda (b) (helm-project-buffer-format-mode
-                                          (cdr b)))
+                                               (cdr b)))
                                   _candidates))))
     (seq-map
      (lambda (b)
