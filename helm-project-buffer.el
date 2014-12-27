@@ -136,10 +136,11 @@
 
 (cl-defun helm-project-buffer-longest-string-width (strings)
   (length
-   (cl-reduce
+   (seq-reduce
     (lambda (a b) (if (> (length a) (length b))
                  a b))
-    strings)))
+    strings
+    "")))
 
 (cl-defun helm-project-buffer-highlight-buffer-name (buffer)
   (cl-letf* ((mode (with-current-buffer buffer
@@ -240,7 +241,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (cl-mapcar
                                   (lambda (b) (helm-project-buffer-format-mode
-                                               (cdr b)))
+                                          (cdr b)))
                                   _candidates))))
     (cl-mapcar
      (lambda (b)
@@ -264,7 +265,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (cl-mapcar
                                   (lambda (b) (helm-project-buffer-format-mode
-                                               (cdr b)))
+                                          (cdr b)))
                                   _candidates))))
     (cl-mapcar
      (lambda (b)
