@@ -2,6 +2,7 @@
 
 (eval-when-compile (require 'cl-lib))
 (require 'subr-x)
+(require 'seq)
 (require 'helm)
 (require 'helm-buffers)
 (require 'helm-utils)
@@ -137,7 +138,7 @@
   (length
    (cl-reduce
     (lambda (a b) (if (> (length a) (length b))
-                      a b))
+                 a b))
     strings)))
 
 (cl-defun helm-project-buffer-highlight-buffer-name (buffer)
@@ -177,26 +178,26 @@
 (cl-defun helm-project-buffer-pad-right (_elem _length)
   (cl-letf ((offset 1))
     (if (< _length (length _elem))
-        (cl-concatenate 'string
-                        _elem (make-string offset ?\s))
-      (cl-concatenate 'string
-                      _elem (make-string (+ (- _length (length _elem)) offset) ?\s)))))
+        (seq-concatenate 'string
+                         _elem (make-string offset ?\s))
+      (seq-concatenate 'string
+                       _elem (make-string (+ (- _length (length _elem)) offset) ?\s)))))
 
 (cl-defun helm-project-buffer-pad-left (_elem _length)
   (cl-letf ((offset 1))
     (if (< _length (length _elem))
-        (cl-concatenate 'string
-                        (make-string offset ?\s)
-                        _elem)
-      (cl-concatenate 'string
-                      (make-string (+ (- _length (length _elem)) offset) ?\s)
-                      _elem))))
+        (seq-concatenate 'string
+                         (make-string offset ?\s)
+                         _elem)
+      (seq-concatenate 'string
+                       (make-string (+ (- _length (length _elem)) offset) ?\s)
+                       _elem))))
 
 (cl-defun helm-project-buffer-format-name (_name _length)
   (if (< _length (length _name))
-      (cl-concatenate 'string _name (make-string 2 ?\s))
-    (cl-concatenate 'string _name (make-string (+ (- _length (length _name)) 2)
-                                               ?\s))))
+      (seq-concatenate 'string _name (make-string 2 ?\s))
+    (seq-concatenate 'string _name (make-string (+ (- _length (length _name)) 2)
+                                                ?\s))))
 
 (cl-defun helm-project-buffer-format-mode (_buffer)
   (cl-letf ((mode (with-current-buffer _buffer (format-mode-line mode-name))))
@@ -239,7 +240,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (cl-mapcar
                                   (lambda (b) (helm-project-buffer-format-mode
-                                          (cdr b)))
+                                               (cdr b)))
                                   _candidates))))
     (cl-mapcar
      (lambda (b)
