@@ -30,20 +30,20 @@
   (cl-letf* ((file (buffer-file-name _buffer))
              (backend (vc-backend file)))
     (pcase backend
-      (`Git (vc-git-root file))
-      (`SVN (vc-svn-root file))
-      (`Hg (vc-hg-root file))
-      (`Bzr (vc-bzr-root file)))))
+      ('Git (vc-git-root file))
+      ('SVN (vc-svn-root file))
+      ('Hg (vc-hg-root file))
+      ('Bzr (vc-bzr-root file)))))
 
 (cl-defun helm-project-buffer-buffer-git-branch (_buffer)
   (cl-letf* ((file (buffer-file-name _buffer))
              (backend (vc-backend file)))
     (if (file-exists-p file)
         (pcase backend
-          (`Git (helm-aif (with-current-buffer
+          ('Git (helm-aif (with-current-buffer
                               _buffer (car (vc-git-branches)))
                     it ""))
-          (else ""))
+          (_ ""))
       "")))
 
 (cl-defun helm-project-buffer-find-buffer-root-and-backend (_buffers)
@@ -137,7 +137,7 @@
   (length
    (cl-reduce
     (lambda (a b) (if (> (length a) (length b))
-                 a b))
+                      a b))
     strings)))
 
 (cl-defun helm-project-buffer-highlight-buffer-name (buffer)
@@ -206,18 +206,18 @@
   (cl-letf ((state (vc-state (buffer-file-name _buffer))))
     (cl-labels ((prop (face) (propertize (helm-stringify state) 'face face)))
       (pcase state
-        (`edited (prop 'font-lock-builtin-face))
-        (`up-to-date (prop 'font-lock-variable-name-face))
-        (`needs-update (prop 'font-lock-comment-delimiter-face))
-        (`needs-merge (prop 'font-lock-constant-face))
-        (`unlocked-changes (prop 'font-lock-doc-face))
-        (`added (prop 'font-lock-function-name-face))
-        (`removed (prop 'font-lock-keyword-face))
-        (`conflict (prop 'font-lock-negation-char-face))
-        (`missing (prop 'font-lock-builtin-face))
-        (`ignored (prop 'font-lock-builtin-face))
-        (`unregistered (prop 'font-lock-builtin-face))
-        (else state)))))
+        ('edited (prop 'font-lock-builtin-face))
+        ('up-to-date (prop 'font-lock-variable-name-face))
+        ('needs-update (prop 'font-lock-comment-delimiter-face))
+        ('needs-merge (prop 'font-lock-constant-face))
+        ('unlocked-changes (prop 'font-lock-doc-face))
+        ('added (prop 'font-lock-function-name-face))
+        ('removed (prop 'font-lock-keyword-face))
+        ('conflict (prop 'font-lock-negation-char-face))
+        ('missing (prop 'font-lock-builtin-face))
+        ('ignored (prop 'font-lock-builtin-face))
+        ('unregistered (prop 'font-lock-builtin-face))
+        (_ state)))))
 
 (cl-defun helm-project-buffer-format-file-name (_buffer)
   (cl-letf ((filename (buffer-file-name _buffer)))
@@ -239,7 +239,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (cl-mapcar
                                   (lambda (b) (helm-project-buffer-format-mode
-                                               (cdr b)))
+                                          (cdr b)))
                                   _candidates))))
     (cl-mapcar
      (lambda (b)
