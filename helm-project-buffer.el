@@ -100,7 +100,7 @@
      source-buffers-alist)))
 
 (cl-defun helm-project-buffer-create-other-buffer-source (_buffers)
-  (cl-letf* ((other-buffers (cl-remove-if #'helm-project-buffer-buffer-backend _buffers))
+  (cl-letf* ((other-buffers (seq-remove #'helm-project-buffer-buffer-backend _buffers))
              (buffers (seq-map
                        (lambda (b) (cons (buffer-name b) b))
                        other-buffers)))
@@ -138,7 +138,7 @@
   (length
    (seq-reduce
     (lambda (a b) (if (> (length a) (length b))
-                      a b))
+                 a b))
     strings
     "")))
 
