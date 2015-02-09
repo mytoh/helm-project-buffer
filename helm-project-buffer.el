@@ -138,7 +138,7 @@
   (length
    (seq-reduce
     (lambda (a b) (if (> (length a) (length b))
-                 a b))
+                      a b))
     strings
     "")))
 
@@ -198,11 +198,13 @@
                         (make-string (+ (- len (length elem)) offset) ?\s)
                         elem)))))
 
-(cl-defun helm-project-buffer-format-name (_name _length)
-  (if (< _length (length _name))
-      (seq-concatenate 'string _name (make-string 2 ?\s))
-    (seq-concatenate 'string _name (make-string (+ (- _length (length _name)) 2)
-                                                ?\s))))
+(cl-defun helm-project-buffer-format-name (name len)
+  (pcase (length name)
+    ((pred (< len))
+     (seq-concatenate 'string name (make-string 2 ?\s)))
+    (_
+     (seq-concatenate 'string name (make-string (+ (- len (length name)) 2)
+                                                ?\s)))))
 
 (cl-defun helm-project-buffer-format-mode (_buffer)
   (cl-letf ((mode (with-current-buffer _buffer (format-mode-line mode-name))))
@@ -245,7 +247,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (seq-map
                                   (lambda (b) (helm-project-buffer-format-mode
-                                               (cdr b)))
+                                          (cdr b)))
                                   _candidates))))
     (seq-map
      (lambda (b)
