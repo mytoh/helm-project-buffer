@@ -121,7 +121,7 @@
    "Open buffer"  'helm-project-buffer-action-open-buffer))
 
 (cl-defun helm-project-buffer-action-open-buffer (candidate)
-  (helm-switch-to-buffer candidate))
+  (switch-to-buffer candidate))
 
 (cl-defun helm-project-buffer-transformer-skip-boring-buffers (candidates)
   (helm-project-buffer-skip-entries candidates helm-boring-buffer-regexp-list))
@@ -241,7 +241,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (seq-map
                                   (lambda (b) (helm-project-buffer-format-mode
-                                               (cdr b)))
+                                          (cdr b)))
                                   _candidates))))
     (seq-map
      (lambda (b)
@@ -265,7 +265,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (seq-map
                                   (lambda (b) (helm-project-buffer-format-mode
-                                               (cdr b)))
+                                          (cdr b)))
                                   _candidates))))
     (seq-map
      (lambda (b)
