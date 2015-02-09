@@ -186,15 +186,17 @@
        (seq-concatenate 'string
                         elem (make-string (+ (- len (length elem)) offset) ?\s))))))
 
-(cl-defun helm-project-buffer-pad-left (_elem _length)
+(cl-defun helm-project-buffer-pad-left (elem len)
   (cl-letf ((offset 1))
-    (if (< _length (length _elem))
-        (seq-concatenate 'string
-                         (make-string offset ?\s)
-                         _elem)
-      (seq-concatenate 'string
-                       (make-string (+ (- _length (length _elem)) offset) ?\s)
-                       _elem))))
+    (pcase (length elem)
+      ((pred (< len))
+       (seq-concatenate 'string
+                        (make-string offset ?\s)
+                        elem))
+      (_
+       (seq-concatenate 'string
+                        (make-string (+ (- len (length elem)) offset) ?\s)
+                        elem)))))
 
 (cl-defun helm-project-buffer-format-name (_name _length)
   (if (< _length (length _name))
