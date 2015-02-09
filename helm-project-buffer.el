@@ -176,13 +176,15 @@
         (t
          (prop 'italic))))))
 
-(cl-defun helm-project-buffer-pad-right (_elem _length)
+(cl-defun helm-project-buffer-pad-right (elem len)
   (cl-letf ((offset 1))
-    (if (< _length (length _elem))
-        (seq-concatenate 'string
-                         _elem (make-string offset ?\s))
-      (seq-concatenate 'string
-                       _elem (make-string (+ (- _length (length _elem)) offset) ?\s)))))
+    (pcase (length elem)
+      ((pred (< len))
+       (seq-concatenate 'string
+                        elem (make-string offset ?\s)))
+      (_
+       (seq-concatenate 'string
+                        elem (make-string (+ (- len (length elem)) offset) ?\s))))))
 
 (cl-defun helm-project-buffer-pad-left (_elem _length)
   (cl-letf ((offset 1))
@@ -241,7 +243,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (seq-map
                                   (lambda (b) (helm-project-buffer-format-mode
-                                          (cdr b)))
+                                               (cdr b)))
                                   _candidates))))
     (seq-map
      (lambda (b)
@@ -265,7 +267,7 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (seq-map
                                   (lambda (b) (helm-project-buffer-format-mode
-                                          (cdr b)))
+                                               (cdr b)))
                                   _candidates))))
     (seq-map
      (lambda (b)
