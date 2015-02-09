@@ -138,7 +138,7 @@
   (length
    (seq-reduce
     (lambda (a b) (if (> (length a) (length b))
-                      a b))
+                 a b))
     strings
     "")))
 
@@ -250,8 +250,7 @@
                                           (cdr b)))
                                   _candidates))))
     (seq-map
-     (lambda (b)
-       (cl-letf ((buffer (cdr b)))
+     (pcase-lambda (`(,_ . ,buffer))
          (cons (format "%s%s  %s  %s"
                        (helm-project-buffer-format-name
                         (helm-project-buffer-highlight-buffer-name
@@ -262,7 +261,7 @@
                         longest-mode-width)
                        (helm-project-buffer-format-state buffer)
                        (helm-project-buffer-format-file-name buffer))
-               buffer)))
+          buffer))
      _candidates)))
 
 (cl-defun helm-project-buffer-transformer-format-other-buffer (_candidates)
@@ -271,11 +270,10 @@
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (seq-map
                                   (lambda (b) (helm-project-buffer-format-mode
-                                               (cdr b)))
+                                          (cdr b)))
                                   _candidates))))
     (seq-map
-     (lambda (b)
-       (cl-letf ((buffer (cdr b)))
+     (pcase-lambda (`(,_ . ,buffer))
          (cons (format "%s%s  %s"
                        (helm-project-buffer-format-name
                         (helm-project-buffer-highlight-buffer-name
@@ -285,7 +283,7 @@
                         (helm-project-buffer-format-mode buffer)
                         longest-mode-width)
                        (helm-project-buffer-format-directory buffer))
-               buffer)))
+          buffer))
      _candidates)))
 
 ;;;###autoload
