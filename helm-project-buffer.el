@@ -138,7 +138,7 @@
   (length
    (seq-reduce
     (lambda (a b) (if (> (length a) (length b))
-                 a b))
+                      a b))
     strings
     "")))
 
@@ -269,8 +269,8 @@
                                    (seq-map #'car _candidates)))
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (seq-map
-                                  (lambda (b) (helm-project-buffer-format-mode
-                                          (cdr b)))
+                                  (pcase-lambda (`(,_ . ,b))
+                                      (helm-project-buffer-format-mode b))
                                   _candidates))))
     (seq-map
      (pcase-lambda (`(,_ . ,buffer))
