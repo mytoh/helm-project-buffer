@@ -75,6 +75,9 @@
                      _vc-buffers)))
    _rb-buffers))
 
+(defclass helm-source-project-buffer-vc-buffer (helm-source-sync)
+  ())
+
 (cl-defun helm-project-buffer-create-vc-buffer-source (_buffers)
   (cl-letf* ((vc-buffers (seq-filter #'helm-project-buffer-buffer-registerd
                                      _buffers))
@@ -86,17 +89,18 @@
      (lambda (l)
        (cl-letf ((buffers (seq-map
                            (lambda (b) (cons (buffer-name b) b))
-                           (cl-getf l :buffers))))
-         `((name . ,(format "%s%s: %s"
-                            (cl-getf l :backend)
-                            (if (string-blank-p (cl-getf l :branch))
-                                ""
-                              (format "@%s" (cl-getf l :branch)))
-                            (cl-getf l :root)))
-           (candidates . ,buffers)
-           (action . ,(helm-project-buffer-actions))
-           (candidate-transformer
-            helm-project-buffer-transformer-format-buffer))))
+                           (cl-getf l :buffers)))
+                 (name (format "%s%s: %s"
+                               (cl-getf l :backend)
+                               (if (string-blank-p (cl-getf l :branch))
+                                   ""
+                                 (format "@%s" (cl-getf l :branch)))
+                               (cl-getf l :root))))
+         (helm-make-source name 'helm-source-project-buffer-vc-buffer
+           :candidates buffers
+           :action (helm-project-buffer-actions)
+           :candidate-transformer
+           'helm-project-buffer-transformer-format-buffer)))
      source-buffers-alist)))
 
 (defclass helm-source-project-buffer (helm-source-sync)
