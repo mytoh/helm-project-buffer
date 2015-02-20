@@ -42,7 +42,7 @@
     (if (file-exists-p file)
         (pcase backend
           (`Git (helm-aif (with-current-buffer
-                              _buffer (car (vc-git-branches)))
+                              _buffer (cl-first (vc-git-branches)))
                     it ""))
           (_ ""))
       "")))
@@ -53,24 +53,24 @@
                (seq-map
                 #'helm-project-buffer-buffer-root-and-backend
                 _buffers))
-   (lambda (rb1 rb2) (cl-equalp (cdr rb1) (cdr rb2)))))
+   (lambda (rb1 rb2) (cl-equalp (cl-rest rb1) (cl-rest rb2)))))
 
 (cl-defun helm-project-buffer-source-buffers-alist (_vc-buffers _rb-buffers)
   (seq-map
    (lambda (rb)
-     (list :root (cdr rb)
-           :backend (car rb)
+     (list :root (cl-rest rb)
+           :backend (cl-first rb)
            :branch (helm-project-buffer-buffer-git-branch
                     (cl-find-if
                      (lambda (b)
                        (and
                         (file-exists-p (buffer-file-name b))
-                        (cl-equalp (cdr rb)
+                        (cl-equalp (cl-rest rb)
                                    (helm-project-buffer-buffer-root b))))
                      _vc-buffers))
            :buffers (seq-filter
                      (lambda (b)
-                       (cl-equalp (cdr rb)
+                       (cl-equalp (cl-rest rb)
                                   (helm-project-buffer-buffer-root b)))
                      _vc-buffers)))
    _rb-buffers))
@@ -99,17 +99,20 @@
             helm-project-buffer-transformer-format-buffer))))
      source-buffers-alist)))
 
+(defclass helm-source-project-buffer (helm-source-sync)
+  ())
+
 (cl-defun helm-project-buffer-create-other-buffer-source (_buffers)
   (cl-letf* ((other-buffers (seq-remove #'helm-project-buffer-buffer-backend _buffers))
              (buffers (seq-map
                        (lambda (b) (cons (buffer-name b) b))
                        other-buffers)))
-    `((name . "Other")
-      (candidates . ,buffers)
-      (action . ,(helm-project-buffer-actions))
-      (candidate-transformer
-       helm-project-buffer-transformer-skip-boring-buffers
-       helm-project-buffer-transformer-format-other-buffer))))
+    (helm-make-source "Buffers" 'helm-source-project-buffer
+      :candidates buffers
+      :action 'helm-project-buffer-actions
+      :candidate-transformer
+      '(helm-project-buffer-transformer-skip-boring-buffers
+        helm-project-buffer-transformer-format-other-buffer))))
 
 (cl-defun helm-project-buffer-create-source (_buffers)
   (append
@@ -130,15 +133,15 @@
   "Remove entries which matches one of REGEXP-LIST from SEQ."
   (cl-loop for i in seq
      unless (cl-loop for regexp in regexp-list
-               thereis (and (stringp (car i))
-                            (string-match regexp (car i))))
+               thereis (and (stringp (cl-first i))
+                            (string-match regexp (cl-first i))))
      collect i))
 
 (cl-defun helm-project-buffer-longest-string-width (strings)
   (length
    (seq-reduce
     (lambda (a b) (if (> (length a) (length b))
-                      a b))
+                 a b))
     strings
     "")))
 
@@ -243,7 +246,7 @@
 
 (cl-defun helm-project-buffer-transformer-format-buffer (_candidates)
   (cl-letf ((longest-buffer-width (helm-project-buffer-longest-string-width
-                                   (seq-map #'car _candidates)))
+                                   (seq-map #'cl-first _candidates)))
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (seq-map
                                   (pcase-lambda (`(,_ . ,b))
@@ -266,7 +269,7 @@
 
 (cl-defun helm-project-buffer-transformer-format-other-buffer (_candidates)
   (cl-letf ((longest-buffer-width (helm-project-buffer-longest-string-width
-                                   (seq-map #'car _candidates)))
+                                   (seq-map #'cl-first _candidates)))
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (seq-map
                                   (pcase-lambda (`(,_ . ,b))
