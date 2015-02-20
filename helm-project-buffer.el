@@ -109,7 +109,7 @@
                        other-buffers)))
     (helm-make-source "Buffers" 'helm-source-project-buffer
       :candidates buffers
-      :action 'helm-project-buffer-actions
+      :action (helm-project-buffer-actions)
       :candidate-transformer
       '(helm-project-buffer-transformer-skip-boring-buffers
         helm-project-buffer-transformer-format-other-buffer))))
