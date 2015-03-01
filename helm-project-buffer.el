@@ -1,6 +1,6 @@
 ;;; helm-project-buffer.el -*- lexical-binding: t -*-
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 (require 'subr-x)
 (require 'seq)
 (require 'helm)
@@ -145,7 +145,7 @@
   (length
    (seq-reduce
     (lambda (a b) (if (> (length a) (length b))
-                 a b))
+                      a b))
     strings
     "")))
 
