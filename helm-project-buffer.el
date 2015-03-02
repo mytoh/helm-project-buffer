@@ -7,28 +7,28 @@
 (require 'helm-buffers)
 (require 'helm-utils)
 
-(cl-defun helm-project-buffer-buffer-backend (_buffer)
-  (vc-backend (buffer-file-name _buffer)))
+(cl-defun helm-project-buffer-buffer-backend (buffer)
+  (vc-backend (buffer-file-name buffer)))
 
-(cl-defun helm-project-buffer-buffer-registerd (_buffer)
-  (helm-aif (buffer-file-name _buffer)
+(cl-defun helm-project-buffer-buffer-registerd (buffer)
+  (helm-aif (buffer-file-name buffer)
       (if (and (not (tramp-tramp-file-p it))
                (file-exists-p it))
           (vc-registered it)
         nil)
     nil))
 
-(cl-defun helm-project-buffer-buffer-root-and-backend (_buffer)
-  (cons (helm-project-buffer-buffer-backend _buffer)
-        (helm-project-buffer-buffer-root _buffer)))
+(cl-defun helm-project-buffer-buffer-root-and-backend (buffer)
+  (cons (helm-project-buffer-buffer-backend buffer)
+        (helm-project-buffer-buffer-root buffer)))
 
-(cl-defun helm-project-buffer-buffer-backend (_buffer)
-  (cl-letf* ((file (buffer-file-name _buffer))
+(cl-defun helm-project-buffer-buffer-backend (buffer)
+  (cl-letf* ((file (buffer-file-name buffer))
              (backend (vc-backend file)))
     backend))
 
-(cl-defun helm-project-buffer-buffer-root (_buffer)
-  (cl-letf* ((file (buffer-file-name _buffer))
+(cl-defun helm-project-buffer-buffer-root (buffer)
+  (cl-letf* ((file (buffer-file-name buffer))
              (backend (vc-backend file)))
     (pcase backend
       (`Git (vc-git-root file))
@@ -36,26 +36,26 @@
       (`Hg (vc-hg-root file))
       (`Bzr (vc-bzr-root file)))))
 
-(cl-defun helm-project-buffer-buffer-git-branch (_buffer)
-  (cl-letf* ((file (buffer-file-name _buffer))
+(cl-defun helm-project-buffer-buffer-git-branch (buffer)
+  (cl-letf* ((file (buffer-file-name buffer))
              (backend (vc-backend file)))
     (if (file-exists-p file)
         (pcase backend
           (`Git (helm-aif (with-current-buffer
-                              _buffer (cl-first (vc-git-branches)))
+                              buffer (cl-first (vc-git-branches)))
                     it ""))
           (_ ""))
       "")))
 
-(cl-defun helm-project-buffer-find-buffer-root-and-backend (_buffers)
+(cl-defun helm-project-buffer-find-buffer-root-and-backend (buffers)
   (seq-uniq
    (seq-remove #'null
                (seq-map
                 #'helm-project-buffer-buffer-root-and-backend
-                _buffers))
+                buffers))
    (lambda (rb1 rb2) (cl-equalp (cl-rest rb1) (cl-rest rb2)))))
 
-(cl-defun helm-project-buffer-source-buffers-alist (_vc-buffers _rb-buffers)
+(cl-defun helm-project-buffer-source-buffers-alist (vc-buffers rb-buffers)
   (seq-map
    (lambda (rb)
      (list :root (cl-rest rb)
@@ -67,20 +67,20 @@
                         (file-exists-p (buffer-file-name b))
                         (cl-equalp (cl-rest rb)
                                    (helm-project-buffer-buffer-root b))))
-                     _vc-buffers))
+                     vc-buffers))
            :buffers (seq-filter
                      (lambda (b)
                        (cl-equalp (cl-rest rb)
                                   (helm-project-buffer-buffer-root b)))
-                     _vc-buffers)))
-   _rb-buffers))
+                     vc-buffers)))
+   rb-buffers))
 
 (defclass helm-source-project-buffer-vc-buffer (helm-source-sync)
   ())
 
-(cl-defun helm-project-buffer-create-vc-buffer-source (_buffers)
+(cl-defun helm-project-buffer-create-vc-buffer-source (buffers)
   (cl-letf* ((vc-buffers (seq-filter #'helm-project-buffer-buffer-registerd
-                                     _buffers))
+                                     buffers))
              (buffer-root-and-backend (helm-project-buffer-find-buffer-root-and-backend
                                        vc-buffers))
              (source-buffers-alist
@@ -106,8 +106,8 @@
 (defclass helm-source-project-buffer (helm-source-sync)
   ())
 
-(cl-defun helm-project-buffer-create-other-buffer-source (_buffers)
-  (cl-letf* ((other-buffers (seq-remove #'helm-project-buffer-buffer-backend _buffers))
+(cl-defun helm-project-buffer-create-other-buffer-source (buffers)
+  (cl-letf* ((other-buffers (seq-remove #'helm-project-buffer-buffer-backend buffers))
              (buffers (seq-map
                        (lambda (b) (cons (buffer-name b) b))
                        other-buffers)))
@@ -118,10 +118,10 @@
       '(helm-project-buffer-transformer-skip-boring-buffers
         helm-project-buffer-transformer-format-other-buffer))))
 
-(cl-defun helm-project-buffer-create-source (_buffers)
+(cl-defun helm-project-buffer-create-source (buffers)
   (append
-   (helm-project-buffer-create-vc-buffer-source _buffers)
-   (list (helm-project-buffer-create-other-buffer-source _buffers))))
+   (helm-project-buffer-create-vc-buffer-source buffers)
+   (list (helm-project-buffer-create-other-buffer-source buffers))))
 
 (cl-defun helm-project-buffer-actions ()
   (helm-make-actions
@@ -145,7 +145,7 @@
   (length
    (seq-reduce
     (lambda (a b) (if (> (length a) (length b))
-                      a b))
+                 a b))
     strings
     "")))
 
@@ -213,12 +213,12 @@
      (seq-concatenate 'string name (make-string (+ (- len (length name)) 2)
                                                 ?\s)))))
 
-(cl-defun helm-project-buffer-format-mode (_buffer)
-  (cl-letf ((mode (with-current-buffer _buffer (format-mode-line mode-name))))
+(cl-defun helm-project-buffer-format-mode (buffer)
+  (cl-letf ((mode (with-current-buffer buffer (format-mode-line mode-name))))
     mode))
 
-(cl-defun helm-project-buffer-format-state (_buffer)
-  (cl-letf ((state (vc-state (buffer-file-name _buffer))))
+(cl-defun helm-project-buffer-format-state (buffer)
+  (cl-letf ((state (vc-state (buffer-file-name buffer))))
     (cl-labels ((prop (face) (propertize (helm-stringify state) 'face face)))
       (pcase state
         (`edited (prop 'font-lock-builtin-face))
@@ -234,28 +234,28 @@
         (`unregistered (prop 'font-lock-builtin-face))
         (_ state)))))
 
-(cl-defun helm-project-buffer-format-file-name (_buffer)
-  (cl-letf ((filename (buffer-file-name _buffer)))
+(cl-defun helm-project-buffer-format-file-name (buffer)
+  (cl-letf ((filename (buffer-file-name buffer)))
     (helm-aif filename
         (propertize (abbreviate-file-name it)
                     'face 'helm-buffer-process)
       "")))
 
-(cl-defun helm-project-buffer-format-directory (_buffer)
-  (cl-letf ((dir (with-current-buffer _buffer default-directory)))
+(cl-defun helm-project-buffer-format-directory (buffer)
+  (cl-letf ((dir (with-current-buffer buffer default-directory)))
     (helm-aif dir
         (propertize (abbreviate-file-name it)
                     'face 'helm-buffer-process)
       "")))
 
-(cl-defun helm-project-buffer-transformer-format-buffer (_candidates)
+(cl-defun helm-project-buffer-transformer-format-buffer (candidates)
   (cl-letf ((longest-buffer-width (helm-project-buffer-longest-string-width
-                                   (seq-map #'cl-first _candidates)))
+                                   (seq-map #'cl-first candidates)))
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (seq-map
                                   (pcase-lambda (`(,_ . ,b))
                                       (helm-project-buffer-format-mode b))
-                                  _candidates))))
+                                  candidates))))
     (seq-map
      (pcase-lambda (`(,_ . ,buffer))
          (cons (format "%s%s  %s  %s"
@@ -269,16 +269,16 @@
                        (helm-project-buffer-format-state buffer)
                        (helm-project-buffer-format-file-name buffer))
           buffer))
-     _candidates)))
+     candidates)))
 
-(cl-defun helm-project-buffer-transformer-format-other-buffer (_candidates)
+(cl-defun helm-project-buffer-transformer-format-other-buffer (candidates)
   (cl-letf ((longest-buffer-width (helm-project-buffer-longest-string-width
-                                   (seq-map #'cl-first _candidates)))
+                                   (seq-map #'cl-first candidates)))
             (longest-mode-width (helm-project-buffer-longest-string-width
                                  (seq-map
                                   (pcase-lambda (`(,_ . ,b))
                                       (helm-project-buffer-format-mode b))
-                                  _candidates))))
+                                  candidates))))
     (seq-map
      (pcase-lambda (`(,_ . ,buffer))
          (cons (format "%s%s  %s"
@@ -291,7 +291,7 @@
                         longest-mode-width)
                        (helm-project-buffer-format-directory buffer))
           buffer))
-     _candidates)))
+     candidates)))
 
 ;;;###autoload
 (cl-defun helm-project-buffer ()
