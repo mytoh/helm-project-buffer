@@ -3,7 +3,6 @@
 (require 'cl-lib)
 (require 'subr-x)
 (require 'seq)
-(require 'vc)
 (require 'helm)
 (require 'helm-buffers)
 (require 'helm-utils)
