@@ -55,7 +55,7 @@
                 buffers))
    (lambda (rb1 rb2) (cl-equalp (cl-rest rb1) (cl-rest rb2)))))
 
-(cl-defun helm-project-buffer-source-buffers-alist (vc-buffers rb-buffers)
+(cl-defun helm-project-buffer-source-buffers-plist (vc-buffers rb-buffers)
   (seq-map
    (lambda (rb)
      (list :root (cl-rest rb)
@@ -83,8 +83,8 @@
                                      buffers))
              (buffer-root-and-backend (helm-project-buffer-find-buffer-root-and-backend
                                        vc-buffers))
-             (source-buffers-alist
-              (helm-project-buffer-source-buffers-alist vc-buffers buffer-root-and-backend)))
+             (source-buffers-plist
+              (helm-project-buffer-source-buffers-plist vc-buffers buffer-root-and-backend)))
     (seq-map
      (lambda (l)
        (cl-letf ((buffers (seq-map
@@ -101,7 +101,7 @@
            :action (helm-project-buffer-actions)
            :candidate-transformer
            'helm-project-buffer-transformer-format-buffer)))
-     source-buffers-alist)))
+     source-buffers-plist)))
 
 (defclass helm-source-project-buffer (helm-source-sync)
   ())
