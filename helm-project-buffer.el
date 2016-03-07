@@ -13,7 +13,7 @@
 (cl-defun helm-project-buffer-buffer-registerd (buffer)
   (helm-aif (buffer-file-name buffer)
       (if (and (not (tramp-tramp-file-p it))
-               (file-exists-p it))
+             (file-exists-p it))
           (vc-registered it)
         nil)
     nil))
@@ -138,7 +138,7 @@
   (cl-loop for i in seq
      unless (cl-loop for regexp in regexp-list
                thereis (and (stringp (cl-first i))
-                            (string-match regexp (cl-first i))))
+                          (string-match-p regexp (cl-first i))))
      collect i))
 
 (cl-defun helm-project-buffer-longest-string-width (strings)
@@ -168,7 +168,7 @@
          (prop 'helm-buffer-directory))
         ;; A buffer file modified somewhere outside of emacs.=>red
         ((and file-name (file-exists-p file-name)
-              (not (verify-visited-file-modtime buf)))
+            (not (verify-visited-file-modtime buf)))
          (prop 'helm-buffer-saved-out))
         ;; A new buffer file not already saved on disk.=>indianred2
         ((and file-name (not (verify-visited-file-modtime buf)))
