@@ -7,6 +7,9 @@
 (require 'helm-buffers)
 (require 'helm-utils)
 
+(require 'colle)
+(require 'glof)
+
 (cl-defun helm-project-buffer-buffer-backend (buffer)
   (vc-backend (buffer-file-name buffer)))
 
@@ -42,35 +45,35 @@
     (if (file-exists-p file)
         (pcase backend
           (`Git (helm-aif (with-current-buffer
-                              buffer (cl-first (vc-git-branches)))
+                              buffer (colle:first (vc-git-branches)))
                     it ""))
           (_ ""))
       "")))
 
 (cl-defun helm-project-buffer-find-buffer-root-and-backend (buffers)
   (seq-uniq
-   (seq-remove #'null
-               (seq-map
-                #'helm-project-buffer-buffer-root-and-backend
-                buffers))
-   (lambda (rb1 rb2) (cl-equalp (cl-rest rb1) (cl-rest rb2)))))
+   (colle:remove #'null
+              (colle:map
+               #'helm-project-buffer-buffer-root-and-backend
+               buffers))
+   (lambda (rb1 rb2) (cl-equalp (colle:rest rb1) (colle:rest rb2)))))
 
 (cl-defun helm-project-buffer-source-buffers-plist (vc-buffers rb-buffers)
-  (seq-map
+  (colle:map
    (lambda (rb)
-     (list :root (cl-rest rb)
-           :backend (cl-first rb)
+     (list :root (colle:rest rb)
+           :backend (colle:first rb)
            :branch (helm-project-buffer-buffer-git-branch
                     (cl-find-if
                      (lambda (b)
                        (and
                         (file-exists-p (buffer-file-name b))
-                        (cl-equalp (cl-rest rb)
+                        (cl-equalp (colle:rest rb)
                                    (helm-project-buffer-buffer-root b))))
                      vc-buffers))
-           :buffers (seq-filter
+           :buffers (colle:filter
                      (lambda (b)
-                       (cl-equalp (cl-rest rb)
+                       (cl-equalp (colle:rest rb)
                                   (helm-project-buffer-buffer-root b)))
                      vc-buffers)))
    rb-buffers))
@@ -79,23 +82,23 @@
   ())
 
 (cl-defun helm-project-buffer-create-vc-buffer-source (buffers)
-  (cl-letf* ((vc-buffers (seq-filter #'helm-project-buffer-buffer-registerd
-                                     buffers))
+  (cl-letf* ((vc-buffers (colle:filter #'helm-project-buffer-buffer-registerd
+                                    buffers))
              (buffer-root-and-backend (helm-project-buffer-find-buffer-root-and-backend
                                        vc-buffers))
              (source-buffers-plist
               (helm-project-buffer-source-buffers-plist vc-buffers buffer-root-and-backend)))
-    (seq-map
+    (colle:map
      (lambda (l)
-       (cl-letf ((buffers (seq-map
+       (cl-letf ((buffers (colle:map
                            (lambda (b) (cons (buffer-name b) b))
-                           (cl-getf l :buffers)))
+                           (glof:get l :buffers)))
                  (name (format "%s%s: %s"
-                               (cl-getf l :backend)
-                               (if (string-blank-p (cl-getf l :branch))
+                               (glof:get l :backend)
+                               (if (string-blank-p (glof:get l :branch))
                                    ""
-                                 (format "@%s" (cl-getf l :branch)))
-                               (cl-getf l :root))))
+                                 (format "@%s" (glof:get l :branch)))
+                               (glof:get l :root))))
          (helm-make-source name 'helm-source-project-buffer-vc-buffer
            :candidates buffers
            :action (helm-project-buffer-actions)
@@ -107,8 +110,8 @@
   ())
 
 (cl-defun helm-project-buffer-create-other-buffer-source (buffers)
-  (cl-letf* ((other-buffers (seq-remove #'helm-project-buffer-buffer-backend buffers))
-             (buffers (seq-map
+  (cl-letf* ((other-buffers (colle:remove #'helm-project-buffer-buffer-backend buffers))
+             (buffers (colle:map
                        (lambda (b) (cons (buffer-name b) b))
                        other-buffers)))
     (helm-make-source "Buffers" 'helm-source-project-buffer
@@ -136,10 +139,10 @@
 (cl-defun helm-project-buffer-skip-entries (seq regexp-list)
   "Remove entries which matches one of REGEXP-LIST from SEQ."
   (cl-loop for i in seq
-     unless (cl-loop for regexp in regexp-list
-               thereis (and (stringp (cl-first i))
-                          (string-match-p regexp (cl-first i))))
-     collect i))
+           unless (cl-loop for regexp in regexp-list
+                           thereis (and (stringp (colle:first i))
+                                      (string-match-p regexp (colle:first i))))
+           collect i))
 
 (cl-defun helm-project-buffer-longest-string-width (strings)
   (length
@@ -163,25 +166,25 @@
                             (propertize "@ " 'face 'helm-ff-prefix))))
     (cl-labels ((prop (face) (propertize name 'face face)))
       (cond
-        ( ;; A dired buffer.
-         (rassoc buf dired-buffers)
-         (prop 'helm-buffer-directory))
-        ;; A buffer file modified somewhere outside of emacs.=>red
-        ((and file-name (file-exists-p file-name)
-            (not (verify-visited-file-modtime buf)))
-         (prop 'helm-buffer-saved-out))
-        ;; A new buffer file not already saved on disk.=>indianred2
-        ((and file-name (not (verify-visited-file-modtime buf)))
-         (prop 'helm-buffer-not-saved))
-        ;; A buffer file modified and not saved on disk.=>orange
-        ((and file-name (buffer-modified-p buf))
-         (prop 'helm-ff-symlink))
-        ;; A buffer file not modified and saved on disk.=>green
-        (file-name
-         (prop 'font-lock-type-face))
-        ;; Any non--file buffer.=>grey italic
-        (t
-         (prop 'italic))))))
+       ( ;; A dired buffer.
+        (rassoc buf dired-buffers)
+        (prop 'helm-buffer-directory))
+       ;; A buffer file modified somewhere outside of emacs.=>red
+       ((and file-name (file-exists-p file-name)
+           (not (verify-visited-file-modtime buf)))
+        (prop 'helm-buffer-saved-out))
+       ;; A new buffer file not already saved on disk.=>indianred2
+       ((and file-name (not (verify-visited-file-modtime buf)))
+        (prop 'helm-buffer-not-saved))
+       ;; A buffer file modified and not saved on disk.=>orange
+       ((and file-name (buffer-modified-p buf))
+        (prop 'helm-ff-symlink))
+       ;; A buffer file not modified and saved on disk.=>green
+       (file-name
+        (prop 'font-lock-type-face))
+       ;; Any non--file buffer.=>grey italic
+       (t
+        (prop 'italic))))))
 
 (cl-defun helm-project-buffer-pad-right (elem len)
   (cl-letf ((offset 1))
@@ -250,47 +253,47 @@
 
 (cl-defun helm-project-buffer-transformer-format-buffer (candidates)
   (cl-letf ((longest-buffer-width (helm-project-buffer-longest-string-width
-                                   (seq-map #'cl-first candidates)))
+                                   (colle:map #'colle:first candidates)))
             (longest-mode-width (helm-project-buffer-longest-string-width
-                                 (seq-map
+                                 (colle:map
                                   (pcase-lambda (`(,_ . ,b))
-                                      (helm-project-buffer-format-mode b))
+                                    (helm-project-buffer-format-mode b))
                                   candidates))))
-    (seq-map
+    (colle:map
      (pcase-lambda (`(,_ . ,buffer))
-         (cons (format "%s%s  %s  %s"
-                       (helm-project-buffer-format-name
-                        (helm-project-buffer-highlight-buffer-name
-                         buffer)
-                        longest-buffer-width)
-                       (helm-project-buffer-pad-left
-                        (helm-project-buffer-format-mode buffer)
-                        longest-mode-width)
-                       (helm-project-buffer-format-state buffer)
-                       (helm-project-buffer-format-file-name buffer))
-          buffer))
+       (cons (format "%s%s  %s  %s"
+                     (helm-project-buffer-format-name
+                      (helm-project-buffer-highlight-buffer-name
+                       buffer)
+                      longest-buffer-width)
+                     (helm-project-buffer-pad-left
+                      (helm-project-buffer-format-mode buffer)
+                      longest-mode-width)
+                     (helm-project-buffer-format-state buffer)
+                     (helm-project-buffer-format-file-name buffer))
+             buffer))
      candidates)))
 
 (cl-defun helm-project-buffer-transformer-format-other-buffer (candidates)
   (cl-letf ((longest-buffer-width (helm-project-buffer-longest-string-width
-                                   (seq-map #'cl-first candidates)))
+                                   (colle:map #'colle:first candidates)))
             (longest-mode-width (helm-project-buffer-longest-string-width
-                                 (seq-map
+                                 (colle:map
                                   (pcase-lambda (`(,_ . ,b))
-                                      (helm-project-buffer-format-mode b))
+                                    (helm-project-buffer-format-mode b))
                                   candidates))))
-    (seq-map
+    (colle:map
      (pcase-lambda (`(,_ . ,buffer))
-         (cons (format "%s%s  %s"
-                       (helm-project-buffer-format-name
-                        (helm-project-buffer-highlight-buffer-name
-                         buffer)
-                        longest-buffer-width)
-                       (helm-project-buffer-pad-left
-                        (helm-project-buffer-format-mode buffer)
-                        longest-mode-width)
-                       (helm-project-buffer-format-directory buffer))
-          buffer))
+       (cons (format "%s%s  %s"
+                     (helm-project-buffer-format-name
+                      (helm-project-buffer-highlight-buffer-name
+                       buffer)
+                      longest-buffer-width)
+                     (helm-project-buffer-pad-left
+                      (helm-project-buffer-format-mode buffer)
+                      longest-mode-width)
+                     (helm-project-buffer-format-directory buffer))
+             buffer))
      candidates)))
 
 ;;;###autoload
